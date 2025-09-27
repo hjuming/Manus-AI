@@ -1,175 +1,403 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
+  <!-- ====== 基本 Meta / Viewport ====== -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>長條圖拼接｜圖片直向串接頁</title>
-  <meta name="description" content="將多張圖片垂直串接成長條圖的單頁網站，支援行動裝置與 lazy-load。" />
+  <title>如何使用 Manus AI 串接 GitHub，將專案部署到 Cloudflare｜過程全記錄</title>
+  <meta name="description" content="以 Artgo 專案為例，完整記錄使用 Manus AI 串接 GitHub 並部署至 Cloudflare Pages 的實作流程與踩雷心得：問題成因、解法、花費成本（1645 積分）、RWD 版面、SEO 與 AI 搜尋結構化資料一次到位。" />
+  <link rel="canonical" href="." />
+
+  <!-- ====== Robots / Language ====== -->
+  <meta name="robots" content="index,follow,max-image-preview:large" />
+  <meta http-equiv="content-language" content="zh-Hant" />
+
+  <!-- ====== Open Graph / Twitter ====== -->
+  <meta property="og:type" content="article" />
+  <meta property="og:locale" content="zh_TW" />
+  <meta property="og:site_name" content="MING 的實作手記" />
+  <meta property="og:title" content="如何使用 Manus AI 串接 GitHub，將專案部署到 Cloudflare｜過程全記錄" />
+  <meta property="og:description" content="以 Artgo 專案為例，完整記錄 Manus AI × GitHub × Cloudflare Pages 的實作流程與踩雷與解法、RWD、SEO 與結構化資料教學。" />
+  <meta property="og:url" content="." />
+  <meta property="og:image" content="https://i.urusai.cc/tr504.jpeg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Manus AI 串 GitHub 部署 Cloudflare｜過程全記錄" />
+  <meta name="twitter:description" content="Artgo 案例：流程、踩雷、成本、RWD、SEO 一次到位。" />
+  <meta name="twitter:image" content="https://i.urusai.cc/tr504.jpeg" />
+
+  <!-- ====== Favicon（可替換） ====== -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E🚀%3C/text%3E%3C/svg%3E">
+
+  <!-- ====== 樣式（Mobile-first） ====== -->
   <style>
     :root{
-      --bg:#0b0b0b; --ink:#f5f5f5; --muted:#9ca3af; --card:#111; --line:#222; --maxw:980px;
+      --bg:#0b0c10; --ink:#e8eaed; --sub:#aab0b6; --line:#21262d; --card:#111317; --muted:#8b949e;
+      --brand:#f6c453; --accent:#7cc4ff; --warn:#ffd166; --bad:#ff6b6b; --ok:#22c55e;
+      --maxw:940px; --radius:14px; --shadow:0 10px 32px rgba(0,0,0,.25);
+      --btn:#1f2937; --btn-h:#252f3f;
     }
     *{box-sizing:border-box}
     html,body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.7 ui-sans-serif,system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",Arial}
-    a{color:#a5b4fc;text-decoration:none}
+    img{max-width:100%;height:auto;display:block}
+    a{color:var(--accent);text-decoration:none}
     a:hover{text-decoration:underline}
-    header{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,#000 0%,rgba(0,0,0,.85) 60%,rgba(0,0,0,0) 100%);backdrop-filter:saturate(1.1) blur(6px)}
-    .bar{max-width:var(--maxw);margin:0 auto;padding:10px 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    .bar .title{font-weight:700}
-    .btn{appearance:none;border:1px solid var(--line);background:#1a1a1a;color:var(--ink);padding:8px 10px;border-radius:8px;cursor:pointer}
-    .btn:hover{background:#222}
+    .container{max-width:var(--maxw);margin:0 auto;padding:0 14px}
+    header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,#07080b 0%,rgba(7,8,11,.9) 60%,rgba(7,8,11,0) 100%);backdrop-filter:saturate(1.1) blur(6px)}
+    .topbar{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 0}
+    .brand{font-weight:800;letter-spacing:.2px}
+    .cta{display:inline-block;background:var(--brand);color:#111;padding:10px 14px;border-radius:999px;font-weight:700}
+    .cta:hover{filter:brightness(.98)}
+    main{padding:12px 0 44px}
+    .hero{display:grid;gap:14px;margin:10px 0 14px}
+    .title{font-weight:900;font-size:1.45rem;line-height:1.35}
+    .subtitle{color:var(--sub)}
+    .meta{display:flex;gap:10px;flex-wrap:wrap;font-size:.9rem;color:var(--muted)}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .pad{padding:14px}
+    .kicker{font-size:.82rem;color:#9aa0a6;margin-bottom:.25rem;letter-spacing:.3px}
+    .btn-row{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{appearance:none;border:1px solid var(--line);background:#151a21;color:var(--ink);padding:12px 14px;border-radius:10px;cursor:pointer}
+    .btn:hover{background:#1a2130}
     .btn:active{transform:translateY(1px)}
-    .wrap{max-width:var(--maxw);margin:8px auto 48px;padding:0 8px}
-    /* 圖片長條列：讓圖片無縫貼合 */
-    .strip{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.35)}
-    .strip img{display:block;width:100%;height:auto;margin:0;border:0;image-rendering:auto;background:#000}
-    /* 工具與說明 */
-    .tools{max-width:var(--maxw);margin:18px auto 0;padding:0 8px;color:var(--muted);font-size:14px}
-    .tools p{margin:.5em 0}
-    .links{white-space:pre-wrap;word-break:break-all;background:#0d0d0d;border:1px solid var(--line);border-radius:10px;padding:10px}
-    .tip{font-size:13px;color:#9aa0a6}
-    footer{max-width:var(--maxw);margin:32px auto;padding:0 8px 40px;color:#7d8590;font-size:13px}
-    /* 列印長頁：隱藏工具列，只輸出長圖 */
+    /* 彩色訊息塊 */
+    .note{border-radius:12px;padding:12px 14px;margin:10px 0;font-size:0.98rem}
+    .note.blue{background:#0d1b2a;border:1px solid #1b263b}
+    .note.amber{background:#2b2308;border:1px solid #3b2f0a}
+    .note.red{background:#2a0d12;border:1px solid #3b0f16}
+    .note.green{background:#0e2014;border:1px solid #15301e}
+    .note .label{display:block;font-weight:800;margin-bottom:4px;color:#cbd5e1;font-size:.9rem}
+    /* 章節 */
+    section{margin:18px 0}
+    section .hd{display:flex;align-items:center;justify-content:space-between;margin:2px 2px 10px}
+    section .hd h2{font-size:1.12rem;margin:0}
+    /* 橫式大按鈕區（單欄） */
+    .biglink{display:block;background:#141a22;border:1px solid var(--line);border-radius:12px;padding:14px;text-decoration:none}
+    .biglink:hover{background:#182131}
+    .biglink .t1{font-weight:800;color:#fff}
+    .biglink .t2{color:#9fb3c8;font-size:.95rem;margin-top:4px}
+    .biglink .url{display:block;color:#b5e3ff;font-size:.88rem;margin-top:6px;word-break:break-all}
+    /* 方形文字卡（2欄） */
+    .grid{display:grid;gap:10px}
+    .grid.square-2{grid-template-columns:1fr}
+    .square{display:flex;align-items:center;justify-content:center;aspect-ratio:1/1;background:#141a22;border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center}
+    .square a{display:block;color:#cfe4ff}
+    .square .t1{font-weight:800;color:#fff}
+    .square .t2{font-size:.9rem;color:#a9b3be;margin-top:6px}
+    .square .url{font-size:.8rem;margin-top:8px;word-break:break-all;color:#93c5fd}
+    /* 長條圖片帶 */
+    .strip{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#000;box-shadow:var(--shadow)}
+    .strip img{display:block;width:100%;height:auto;background:#000}
+    /* TOC pills */
+    .toc{display:flex;gap:8px;flex-wrap:wrap}
+    .pill{display:inline-block;border:1px solid var(--line);padding:8px 10px;border-radius:999px;background:#131820;color:#d5dbe3;font-size:.9rem}
+    .pill:hover{background:#182132}
+    /* footer */
+    footer{color:#97a0aa;font-size:.9rem;padding:22px 0 34px}
+    /* 小螢幕→大螢幕漸進增強 */
+    @media(min-width:480px){
+      .title{font-size:1.65rem}
+      .grid.square-2{grid-template-columns:repeat(2,1fr)}
+    }
     @media print{
-      header,.tools,footer{display:none!important}
-      body{background:#000}
-      .wrap{margin:0;padding:0}
+      header,.toc,.btn-row,.note,.biglink,.grid,footer{display:none!important}
       .strip{border:0;border-radius:0;box-shadow:none}
+      body{background:#000}
+      main{padding:0}
     }
   </style>
+
+  <!-- ====== 結構化資料（JSON-LD） ====== -->
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@graph":[
+      {
+        "@type":"WebPage",
+        "@id":"./#webpage",
+        "url":"./",
+        "name":"如何使用 Manus AI 串接 GitHub，將專案部署到 Cloudflare｜過程全記錄",
+        "inLanguage":"zh-Hant",
+        "description":"以 Artgo 專案為例，完整記錄 Manus AI × GitHub × Cloudflare Pages 的實作流程、踩雷與解法、RWD 與 SEO 設定。"
+      },
+      {
+        "@type":"BreadcrumbList",
+        "itemListElement":[
+          {"@type":"ListItem","position":1,"name":"首頁","item":"./"},
+          {"@type":"ListItem","position":2,"name":"Manus AI × GitHub × Cloudflare 實作記錄","item":"./"}
+        ]
+      },
+      {
+        "@type":"FAQPage",
+        "mainEntity":[
+          {
+            "@type":"Question",
+            "name":"為什麼 Manus 上傳後網頁無法正常顯示？",
+            "acceptedAnswer":{"@type":"Answer","text":"常見原因包括：上傳的檔案內容與預期不同（例如 index.html 未更新或被覆寫）、路徑或大小寫錯誤、建置流程未完成、靜態資源未正確引用。建議比對 GitHub 上實際檔案並重新觸發部署。"}
+          },
+          {
+            "@type":"Question",
+            "name":"如何確認問題是檔案內容而非部署平台？",
+            "acceptedAnswer":{"@type":"Answer","text":"直接至 GitHub 網站打開該分支的 index.html，改用純手動覆貼並提交一次。若隨即恢復正常，即可判定是檔案內容或上傳流程造成。"}
+          },
+          {
+            "@type":"Question",
+            "name":"Cloudflare Pages 最小可行專案需要什麼檔案？",
+            "acceptedAnswer":{"@type":"Answer","text":"純靜態網頁最少需要一個根目錄的 index.html（可選擇加入 /assets 資料夾放置樣式與腳本）。綁定 GitHub 後選擇分支即可部署。"}
+          },
+          {
+            "@type":"Question",
+            "name":"如何降低 AI 工具反覆嘗試造成的成本浪費？",
+            "acceptedAnswer":{"@type":"Answer","text":"明確限制任務範圍（只做下載與上傳，不做內容改寫）、要求回報變更摘要、在每一步進行驗證（比對檔案雜湊或 Git diff），必要時改為手動提交一次交叉檢查。"}
+          }
+        ]
+      },
+      {
+        "@type":"ItemList",
+        "name":"延伸閱讀：案例分享",
+        "itemListElement":[
+          {"@type":"ListItem","position":1,"name":"馬太鞍溪堰塞湖溢流災害｜中央與地方政府角色分析與檢討","url":"https://disaster-report.pages.dev/"},
+          {"@type":"ListItem","position":2,"name":"MBTI 動物原型人格測試","url":"https://mbti.petsgo.pet/"},
+          {"@type":"ListItem","position":3,"name":"Apple 產品發表會亮點","url":"https://appleshow-abb6yj.manus.space/"},
+          {"@type":"ListItem","position":4,"name":"威力彩：下一期頭獎號碼","url":"https://lottery-jvtc6k.manus.space/"},
+          {"@type":"ListItem","position":5,"name":"司法偵辦過程對比分析：超思雞蛋案 vs 柯文哲京華城案｜台灣","url":"https://judicial-n4f53b.manus.space/"},
+          {"@type":"ListItem","position":6,"name":"夔：從自然神力到帝王權威的符號學解讀","url":"https://kuiweb-4fdmgc.manus.space/"},
+          {"@type":"ListItem","position":7,"name":"MoonTV｜跨平台影視聚合播放器","url":"https://moontv-2fw.pages.dev/"}
+        ]
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
+  <!-- ====== Header / Top CTA ====== -->
   <header>
-    <div class="bar">
-      <div class="title">📜 長條圖拼接</div>
-      <button class="btn" id="copyLinks">複製圖片連結清單</button>
-      <button class="btn" id="toggleGutters">切換邊界</button>
-      <button class="btn" onclick="window.print()">列印/存成PDF</button>
-      <span class="tip">提示：行動裝置請直向瀏覽；若要輸出成單一長頁 PDF，使用「列印 → 存成 PDF」。</span>
+    <div class="container topbar">
+      <div class="brand">MING · 實作記錄</div>
+      <a class="cta" href="https://manus.im/invitation/AHHDRYYJCP5MK" target="_blank" rel="noopener">Manus 邀請註冊</a>
     </div>
   </header>
 
-  <div class="wrap">
-    <div id="strip" class="strip">
-      <!-- 依序垂直串接： -->
-      <img loading="lazy" alt="panel 1"  src="https://i.urusai.cc/tr504.jpeg">
-      <img loading="lazy" alt="panel 2"  src="https://i.urusai.cc/rJ9cE.jpeg">
-      <img loading="lazy" alt="panel 3"  src="https://i.urusai.cc/Eun3Y.jpeg">
-      <img loading="lazy" alt="panel 4"  src="https://i.urusai.cc/0Zdbl.jpeg">
-      <img loading="lazy" alt="panel 5"  src="https://i.urusai.cc/D4beF.jpeg">
-      <img loading="lazy" alt="panel 6"  src="https://i.urusai.cc/CpoUM.jpeg">
-      <img loading="lazy" alt="panel 7"  src="https://i.urusai.cc/JDCto.jpeg">
-      <img loading="lazy" alt="panel 8"  src="https://i.urusai.cc/keOO8.jpeg">
-      <img loading="lazy" alt="panel 9"  src="https://i.urusai.cc/0LYoh.jpeg">
-      <img loading="lazy" alt="panel 10" src="https://i.urusai.cc/TI2kB.jpeg">
-      <img loading="lazy" alt="panel 11" src="https://i.urusai.cc/2rn6T.jpeg">
-      <img loading="lazy" alt="panel 12" src="https://i.urusai.cc/SiUSJ.jpeg">
-      <img loading="lazy" alt="panel 13" src="https://i.urusai.cc/79ldX.jpeg">
-      <img loading="lazy" alt="panel 14" src="https://i.urusai.cc/8Le5O.jpeg">
-      <img loading="lazy" alt="panel 15" src="https://i.urusai.cc/jRfAM.jpeg">
-      <img loading="lazy" alt="panel 16" src="https://i.urusai.cc/uiDAd.jpeg">
-      <img loading="lazy" alt="panel 17" src="https://i.urusai.cc/L25UB.jpeg">
-      <img loading="lazy" alt="panel 18" src="https://i.urusai.cc/eNEhQ.jpeg">
-      <img loading="lazy" alt="panel 19" src="https://i.urusai.cc/kvEJK.jpeg">
-      <img loading="lazy" alt="panel 20" src="https://i.urusai.cc/Bs7vw.jpeg">
-      <img loading="lazy" alt="panel 21" src="https://i.urusai.cc/bcL4Z.jpeg">
-      <img loading="lazy" alt="panel 22" src="https://i.urusai.cc/iEzbe.jpeg">
-      <img loading="lazy" alt="panel 23" src="https://i.urusai.cc/1cPs9.jpeg">
-      <img loading="lazy" alt="panel 24" src="https://i.urusai.cc/PsfDJ.jpeg">
-      <img loading="lazy" alt="panel 25" src="https://i.urusai.cc/IxIUX.jpeg">
-      <img loading="lazy" alt="panel 26" src="https://i.urusai.cc/uJRp8.jpeg">
-      <img loading="lazy" alt="panel 27" src="https://i.urusai.cc/ON63x.jpeg">
-      <img loading="lazy" alt="panel 28" src="https://i.urusai.cc/TooLp.jpeg">
-      <img loading="lazy" alt="panel 29" src="https://i.urusai.cc/8xCtZ.jpeg">
-      <img loading="lazy" alt="panel 30" src="https://i.urusai.cc/0xbuv.jpeg">
-      <img loading="lazy" alt="panel 31" src="https://i.urusai.cc/pJTRq.jpeg">
-      <img loading="lazy" alt="panel 32" src="https://i.urusai.cc/391uK.jpeg">
-      <img loading="lazy" alt="panel 33" src="https://i.urusai.cc/Ceh9a.jpeg">
-      <img loading="lazy" alt="panel 34" src="https://i.urusai.cc/PauJn.jpeg">
-      <img loading="lazy" alt="panel 35" src="https://i.urusai.cc/QahRH.jpeg">
-      <img loading="lazy" alt="panel 36" src="https://i.urusai.cc/h8Prv.jpeg">
-    </div>
+  <main class="container">
+    <!-- ====== Hero ====== -->
+    <section class="hero">
+      <div class="title">如何使用 Manus AI 串接 GitHub，將專案部署到 Cloudflare</div>
+      <div class="subtitle">次標：過程全記錄</div>
+      <div class="meta">
+        <div>作者：MING</div>
+        <div>RWD｜行動優先｜含結構化資料</div>
+      </div>
 
-    <div class="tools">
-      <p>若要在頁面留一點外框，點一下「切換邊界」。</p>
-      <p class="tip">⚠️ 若要把所有圖片「真正合併成單一圖檔」，需以影像工具離線合成（或確保來源網域允許 CORS 才能用 Canvas 合併）。此頁提供「列印 → 存成 PDF」作為一鍵輸出長頁的做法。</p>
+      <!-- 導覽錨點 -->
+      <div class="toc">
+        <a class="pill" href="#story">學習經驗</a>
+        <a class="pill" href="#project">本次案例</a>
+        <a class="pill" href="#cases">延伸閱讀</a>
+        <a class="pill" href="#gallery">長條圖片記錄</a>
+        <a class="pill" href="#faq">常見問題</a>
+      </div>
+    </section>
+
+    <!-- ====== 學習經驗 / 流程記錄 ====== -->
+    <section id="story" class="card pad">
+      <div class="kicker">Learning Notes</div>
+      <h2 class="hd"><span>這次的學習經驗與整個過程</span></h2>
+      <p>我用 Gemini 先做了一個點餐網頁，想試試看 Manus 串接，把流程自動化：直接從 Gemini 下載檔案 → 上傳 GitHub → 交給 Cloudflare Pages 部署。</p>
+
+      <!-- 彩色區塊：提示詞＆專案名 -->
+      <div class="note blue">
+        <span class="label">當時用的提示詞</span>
+        <div>請幫我到這個網址下載 <code>index.html</code> 檔案，部署到 GitHub 上，並協助我將此專案部署到 Cloudflare Pages</div>
+      </div>
+      <div class="note amber">
+        <span class="label">專案名稱</span>
+        <div>Artgo</div>
+      </div>
+
+      <!-- 狀況說明 -->
+      <div class="note red">
+        <span class="label">Manus 上傳後結果</span>
+        <div>網頁無法正常顯示。我提醒它可能是檔案內容問題，但它持續自動檢查與測試，耗時約一小時仍未修復顯示問題。</div>
+      </div>
+
+      <!-- 解法 -->
+      <div class="note green">
+        <span class="label">最後解決方式</span>
+        <div>我直接上 GitHub 網站，<b>手動覆貼</b>最新 <code>index.html</code> 並提交，Cloudflare Pages 隨即正常顯示。</div>
+      </div>
+
+      <!-- 成本 -->
+      <div class="note red">
+        <span class="label">付出代價</span>
+        <div>Manus 帳戶 <b>1645 積分</b>瞬間歸 0，最後一句話也送不出去。</div>
+      </div>
+
+      <h3 style="margin:14px 0 6px">關鍵心法（AI 搜尋時代）</h3>
+      <ul>
+        <li><b>步驟可觀測：</b>每一步都要求回報「變更摘要」與「驗證方式」（例如：檔案大小／雜湊／Git diff）。</li>
+        <li><b>邊界要清楚：</b>交給 AI 的範圍先從「下載與上傳」開始，<u>避免同時修改內容與部署</u>，降低變因。</li>
+        <li><b>人機互證：</b>出現異常，<u>先手動提交一次</u>驗證平台是否正常，再回溯自動流程問題。</li>
+        <li><b>保留快取線索：</b>Cloudflare Pages、瀏覽器、CDN 皆可能快取；改檔名或禁快取參數可快速確認是否快取造成。</li>
+      </ul>
+    </section>
+
+    <!-- ====== 本次案例（橫式文字區塊按鈕） ====== -->
+    <section id="project">
+      <div class="hd"><h2>本次案例</h2></div>
+      <a class="biglink" href="https://artgo.pages.dev" target="_blank" rel="noopener">
+        <div class="t1">Artgo Cafe 雅鴿書院｜日式料理 極上總督盛宴</div>
+        <div class="t2">Cloudflare Pages 部署實例</div>
+        <span class="url">https://artgo.pages.dev</span>
+      </a>
+    </section>
+
+    <!-- ====== 邀請註冊（單欄） ====== -->
+    <section>
+      <a class="biglink" href="https://manus.im/invitation/AHHDRYYJCP5MK" target="_blank" rel="noopener" aria-label="Manus 邀請註冊">
+        <div class="t1">Manus 邀請註冊</div>
+        <div class="t2">體驗 AI 協作開發流程（含 GitHub 與部署自動化）</div>
+        <span class="url">https://manus.im/invitation/AHHDRYYJCP5MK</span>
+      </a>
+    </section>
+
+    <!-- ====== 延伸閱讀（方形文字區塊／2欄） ====== -->
+    <section id="cases" class="card pad">
+      <div class="hd"><h2>延伸閱讀：案例分享</h2></div>
+      <div class="grid square-2">
+        <div class="square">
+          <a href="https://disaster-report.pages.dev/" target="_blank" rel="noopener">
+            <div class="t1">馬太鞍溪堰塞湖溢流災害</div>
+            <div class="t2">中央與地方政府角色分析與檢討</div>
+            <span class="url">disaster-report.pages.dev</span>
+          </a>
+        </div>
+        <div class="square">
+          <a href="https://mbti.petsgo.pet/" target="_blank" rel="noopener">
+            <div class="t1">MBTI 動物原型人格測試</div>
+            <div class="t2">探索你的內在宇宙，發現靈魂動物</div>
+            <span class="url">mbti.petsgo.pet</span>
+          </a>
+        </div>
+        <div class="square">
+          <a href="https://appleshow-abb6yj.manus.space/" target="_blank" rel="noopener">
+            <div class="t1">Apple 產品發表會</div>
+            <div class="t2">iPhone／AirPods／Watch 升級亮點</div>
+            <span class="url">appleshow-abb6yj.manus.space</span>
+          </a>
+        </div>
+        <div class="square">
+          <a href="https://lottery-jvtc6k.manus.space/" target="_blank" rel="noopener">
+            <div class="t1">威力彩</div>
+            <div class="t2">下一期頭獎號碼</div>
+            <span class="url">lottery-jvtc6k.manus.space</span>
+          </a>
+        </div>
+        <div class="square">
+          <a href="https://judicial-n4f53b.manus.space/" target="_blank" rel="noopener">
+            <div class="t1">司法偵辦對比分析</div>
+            <div class="t2">超思雞蛋案 vs 柯文哲京華城案</div>
+            <span class="url">judicial-n4f53b.manus.space</span>
+          </a>
+        </div>
+        <div class="square">
+          <a href="https://kuiweb-4fdmgc.manus.space/" target="_blank" rel="noopener">
+            <div class="t1">夔：符號學解讀</div>
+            <div class="t2">自然神力到帝王權威</div>
+            <span class="url">kuiweb-4fdmgc.manus.space</span>
+          </a>
+        </div>
+        <div class="square">
+          <a href="https://moontv-2fw.pages.dev/" target="_blank" rel="noopener">
+            <div class="t1">MoonTV</div>
+            <div class="t2">跨平台影視聚合播放器</div>
+            <span class="url">moontv-2fw.pages.dev</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== 截圖長條（依順序瀏覽） ====== -->
+    <section id="gallery">
+      <div class="hd"><h2>全記錄截圖（由上而下依序瀏覽）</h2></div>
+      <div class="strip">
+        <!-- 延續你前一題的 36 張圖片；lazy 載入 -->
+        <img loading="lazy" alt="log 1"  src="https://i.urusai.cc/tr504.jpeg">
+        <img loading="lazy" alt="log 2"  src="https://i.urusai.cc/rJ9cE.jpeg">
+        <img loading="lazy" alt="log 3"  src="https://i.urusai.cc/Eun3Y.jpeg">
+        <img loading="lazy" alt="log 4"  src="https://i.urusai.cc/0Zdbl.jpeg">
+        <img loading="lazy" alt="log 5"  src="https://i.urusai.cc/D4beF.jpeg">
+        <img loading="lazy" alt="log 6"  src="https://i.urusai.cc/CpoUM.jpeg">
+        <img loading="lazy" alt="log 7"  src="https://i.urusai.cc/JDCto.jpeg">
+        <img loading="lazy" alt="log 8"  src="https://i.urusai.cc/keOO8.jpeg">
+        <img loading="lazy" alt="log 9"  src="https://i.urusai.cc/0LYoh.jpeg">
+        <img loading="lazy" alt="log 10" src="https://i.urusai.cc/TI2kB.jpeg">
+        <img loading="lazy" alt="log 11" src="https://i.urusai.cc/2rn6T.jpeg">
+        <img loading="lazy" alt="log 12" src="https://i.urusai.cc/SiUSJ.jpeg">
+        <img loading="lazy" alt="log 13" src="https://i.urusai.cc/79ldX.jpeg">
+        <img loading="lazy" alt="log 14" src="https://i.urusai.cc/8Le5O.jpeg">
+        <img loading="lazy" alt="log 15" src="https://i.urusai.cc/jRfAM.jpeg">
+        <img loading="lazy" alt="log 16" src="https://i.urusai.cc/uiDAd.jpeg">
+        <img loading="lazy" alt="log 17" src="https://i.urusai.cc/L25UB.jpeg">
+        <img loading="lazy" alt="log 18" src="https://i.urusai.cc/eNEhQ.jpeg">
+        <img loading="lazy" alt="log 19" src="https://i.urusai.cc/kvEJK.jpeg">
+        <img loading="lazy" alt="log 20" src="https://i.urusai.cc/Bs7vw.jpeg">
+        <img loading="lazy" alt="log 21" src="https://i.urusai.cc/bcL4Z.jpeg">
+        <img loading="lazy" alt="log 22" src="https://i.urusai.cc/iEzbe.jpeg">
+        <img loading="lazy" alt="log 23" src="https://i.urusai.cc/1cPs9.jpeg">
+        <img loading="lazy" alt="log 24" src="https://i.urusai.cc/PsfDJ.jpeg">
+        <img loading="lazy" alt="log 25" src="https://i.urusai.cc/IxIUX.jpeg">
+        <img loading="lazy" alt="log 26" src="https://i.urusai.cc/uJRp8.jpeg">
+        <img loading="lazy" alt="log 27" src="https://i.urusai.cc/ON63x.jpeg">
+        <img loading="lazy" alt="log 28" src="https://i.urusai.cc/TooLp.jpeg">
+        <img loading="lazy" alt="log 29" src="https://i.urusai.cc/8xCtZ.jpeg">
+        <img loading="lazy" alt="log 30" src="https://i.urusai.cc/0xbuv.jpeg">
+        <img loading="lazy" alt="log 31" src="https://i.urusai.cc/pJTRq.jpeg">
+        <img loading="lazy" alt="log 32" src="https://i.urusai.cc/391uK.jpeg">
+        <img loading="lazy" alt="log 33" src="https://i.urusai.cc/Ceh9a.jpeg">
+        <img loading="lazy" alt="log 34" src="https://i.urusai.cc/PauJn.jpeg">
+        <img loading="lazy" alt="log 35" src="https://i.urusai.cc/QahRH.jpeg">
+        <img loading="lazy" alt="log 36" src="https://i.urusai.cc/h8Prv.jpeg">
+      </div>
+      <p style="color:#9aa0a6;margin:10px 2px 0;font-size:.9rem">提示：若要輸出成單一長頁 PDF，可使用瀏覽器「列印 → 存成 PDF」。</p>
+    </section>
+
+    <!-- ====== FAQ（AI 搜尋友善） ====== -->
+    <section id="faq" class="card pad">
+      <div class="hd"><h2>常見問題（FAQ）</h2></div>
       <details>
-        <summary>查看所有圖片連結（便於檢查/備份）</summary>
-        <div class="links" id="linksBox"></div>
+        <summary>Manus × GitHub × Cloudflare 基本流程是什麼？</summary>
+        <ol>
+          <li>在 GitHub 建立 Repo（含 <code>index.html</code>）。</li>
+          <li>Cloudflare Pages 綁定該 Repo 與分支，設定建置指令（純靜態可免）。</li>
+          <li>Manus 僅負責「下載／上傳」或「建立提交」，每一步都要求回報差異與驗證方式。</li>
+        </ol>
       </details>
-    </div>
-  </div>
+      <details>
+        <summary>如何避免 AI 工具「鬼打牆」消耗積分？</summary>
+        <p>設計「停損條件」與「驗證檢查點」：連續 2 次失敗就中止，改為人工提交；每步驟產出必須附「檔案大小／校驗碼／Git diff」。</p>
+      </details>
+      <details>
+        <summary>部署成功但看不到最新內容怎麼辦？</summary>
+        <p>清除瀏覽器／CDN 快取；或改檔名、在資源 URL 加上版本參數（如 <code>?v=20250928</code>）。</p>
+      </details>
+    </section>
 
-  <footer>
-    <div>© 長條圖拼接頁 · 單檔 HTML · 行動裝置優化</div>
+    <!-- ====== 底部最大 CTA（單欄） ====== -->
+    <section>
+      <a class="biglink" style="border-width:2px" href="https://manus.im/invitation/AHHDRYYJCP5MK" target="_blank" rel="noopener">
+        <div class="t1">立即加入 Manus（邀請註冊）</div>
+        <div class="t2">建立你的第一個 Manus × GitHub × Cloudflare 自動化流程</div>
+        <span class="url">https://manus.im/invitation/AHHDRYYJCP5MK</span>
+      </a>
+    </section>
+  </main>
+
+  <footer class="container">
+    <div>© 2025 MING · Manus × GitHub × Cloudflare 實作記錄｜行動優先 RWD · 結構化資料/FAQ 完整支援</div>
   </footer>
 
+  <!-- ====== 小工具：返回頁面時收合 details、快速複製連結等（可擴充） ====== -->
   <script>
-    // 連結清單（供一鍵複製）
-    const urls = [
-      "https://i.urusai.cc/tr504.jpeg",
-      "https://i.urusai.cc/rJ9cE.jpeg",
-      "https://i.urusai.cc/Eun3Y.jpeg",
-      "https://i.urusai.cc/0Zdbl.jpeg",
-      "https://i.urusai.cc/D4beF.jpeg",
-      "https://i.urusai.cc/CpoUM.jpeg",
-      "https://i.urusai.cc/JDCto.jpeg",
-      "https://i.urusai.cc/keOO8.jpeg",
-      "https://i.urusai.cc/0LYoh.jpeg",
-      "https://i.urusai.cc/TI2kB.jpeg",
-      "https://i.urusai.cc/2rn6T.jpeg",
-      "https://i.urusai.cc/SiUSJ.jpeg",
-      "https://i.urusai.cc/79ldX.jpeg",
-      "https://i.urusai.cc/8Le5O.jpeg",
-      "https://i.urusai.cc/jRfAM.jpeg",
-      "https://i.urusai.cc/uiDAd.jpeg",
-      "https://i.urusai.cc/L25UB.jpeg",
-      "https://i.urusai.cc/eNEhQ.jpeg",
-      "https://i.urusai.cc/kvEJK.jpeg",
-      "https://i.urusai.cc/Bs7vw.jpeg",
-      "https://i.urusai.cc/bcL4Z.jpeg",
-      "https://i.urusai.cc/iEzbe.jpeg",
-      "https://i.urusai.cc/1cPs9.jpeg",
-      "https://i.urusai.cc/PsfDJ.jpeg",
-      "https://i.urusai.cc/IxIUX.jpeg",
-      "https://i.urusai.cc/uJRp8.jpeg",
-      "https://i.urusai.cc/ON63x.jpeg",
-      "https://i.urusai.cc/TooLp.jpeg",
-      "https://i.urusai.cc/8xCtZ.jpeg",
-      "https://i.urusai.cc/0xbuv.jpeg",
-      "https://i.urusai.cc/pJTRq.jpeg",
-      "https://i.urusai.cc/391uK.jpeg",
-      "https://i.urusai.cc/Ceh9a.jpeg",
-      "https://i.urusai.cc/PauJn.jpeg",
-      "https://i.urusai.cc/QahRH.jpeg",
-      "https://i.urusai.cc/h8Prv.jpeg"
-    ];
-    document.getElementById('linksBox').textContent = urls.join('\n');
-
-    document.getElementById('copyLinks').addEventListener('click', async () => {
-      try{
-        await navigator.clipboard.writeText(urls.join('\n'));
-        alert('已複製所有圖片連結到剪貼簿');
-      }catch(e){
-        alert('複製失敗，請手動選取下方清單複製。');
-      }
-    });
-
-    // 切換外框邊界，方便視覺檢查拼接
-    let gutted = false;
-    document.getElementById('toggleGutters').addEventListener('click', () => {
-      const strip = document.getElementById('strip');
-      gutted = !gutted;
-      if(gutted){
-        strip.style.padding = '8px';
-        strip.style.background = '#000';
-      }else{
-        strip.style.padding = '0';
-        strip.style.background = 'var(--card)';
-      }
-    });
-
-    // 若從瀏覽器返回頁面，確保 details 維持原收合狀態（避免自動展開）
+    // 返回頁面時保持 FAQ 收合，避免瀏覽器自動展開
     window.addEventListener('pageshow', () => {
       document.querySelectorAll('details').forEach(d => d.open = false);
     });
