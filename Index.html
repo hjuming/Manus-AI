@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>長條圖拼接｜圖片直向串接頁</title>
+  <meta name="description" content="將多張圖片垂直串接成長條圖的單頁網站，支援行動裝置與 lazy-load。" />
+  <style>
+    :root{
+      --bg:#0b0b0b; --ink:#f5f5f5; --muted:#9ca3af; --card:#111; --line:#222; --maxw:980px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.7 ui-sans-serif,system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",Arial}
+    a{color:#a5b4fc;text-decoration:none}
+    a:hover{text-decoration:underline}
+    header{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,#000 0%,rgba(0,0,0,.85) 60%,rgba(0,0,0,0) 100%);backdrop-filter:saturate(1.1) blur(6px)}
+    .bar{max-width:var(--maxw);margin:0 auto;padding:10px 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .bar .title{font-weight:700}
+    .btn{appearance:none;border:1px solid var(--line);background:#1a1a1a;color:var(--ink);padding:8px 10px;border-radius:8px;cursor:pointer}
+    .btn:hover{background:#222}
+    .btn:active{transform:translateY(1px)}
+    .wrap{max-width:var(--maxw);margin:8px auto 48px;padding:0 8px}
+    /* 圖片長條列：讓圖片無縫貼合 */
+    .strip{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+    .strip img{display:block;width:100%;height:auto;margin:0;border:0;image-rendering:auto;background:#000}
+    /* 工具與說明 */
+    .tools{max-width:var(--maxw);margin:18px auto 0;padding:0 8px;color:var(--muted);font-size:14px}
+    .tools p{margin:.5em 0}
+    .links{white-space:pre-wrap;word-break:break-all;background:#0d0d0d;border:1px solid var(--line);border-radius:10px;padding:10px}
+    .tip{font-size:13px;color:#9aa0a6}
+    footer{max-width:var(--maxw);margin:32px auto;padding:0 8px 40px;color:#7d8590;font-size:13px}
+    /* 列印長頁：隱藏工具列，只輸出長圖 */
+    @media print{
+      header,.tools,footer{display:none!important}
+      body{background:#000}
+      .wrap{margin:0;padding:0}
+      .strip{border:0;border-radius:0;box-shadow:none}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="bar">
+      <div class="title">📜 長條圖拼接</div>
+      <button class="btn" id="copyLinks">複製圖片連結清單</button>
+      <button class="btn" id="toggleGutters">切換邊界</button>
+      <button class="btn" onclick="window.print()">列印/存成PDF</button>
+      <span class="tip">提示：行動裝置請直向瀏覽；若要輸出成單一長頁 PDF，使用「列印 → 存成 PDF」。</span>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div id="strip" class="strip">
+      <!-- 依序垂直串接： -->
+      <img loading="lazy" alt="panel 1"  src="https://i.urusai.cc/tr504.jpeg">
+      <img loading="lazy" alt="panel 2"  src="https://i.urusai.cc/rJ9cE.jpeg">
+      <img loading="lazy" alt="panel 3"  src="https://i.urusai.cc/Eun3Y.jpeg">
+      <img loading="lazy" alt="panel 4"  src="https://i.urusai.cc/0Zdbl.jpeg">
+      <img loading="lazy" alt="panel 5"  src="https://i.urusai.cc/D4beF.jpeg">
+      <img loading="lazy" alt="panel 6"  src="https://i.urusai.cc/CpoUM.jpeg">
+      <img loading="lazy" alt="panel 7"  src="https://i.urusai.cc/JDCto.jpeg">
+      <img loading="lazy" alt="panel 8"  src="https://i.urusai.cc/keOO8.jpeg">
+      <img loading="lazy" alt="panel 9"  src="https://i.urusai.cc/0LYoh.jpeg">
+      <img loading="lazy" alt="panel 10" src="https://i.urusai.cc/TI2kB.jpeg">
+      <img loading="lazy" alt="panel 11" src="https://i.urusai.cc/2rn6T.jpeg">
+      <img loading="lazy" alt="panel 12" src="https://i.urusai.cc/SiUSJ.jpeg">
+      <img loading="lazy" alt="panel 13" src="https://i.urusai.cc/79ldX.jpeg">
+      <img loading="lazy" alt="panel 14" src="https://i.urusai.cc/8Le5O.jpeg">
+      <img loading="lazy" alt="panel 15" src="https://i.urusai.cc/jRfAM.jpeg">
+      <img loading="lazy" alt="panel 16" src="https://i.urusai.cc/uiDAd.jpeg">
+      <img loading="lazy" alt="panel 17" src="https://i.urusai.cc/L25UB.jpeg">
+      <img loading="lazy" alt="panel 18" src="https://i.urusai.cc/eNEhQ.jpeg">
+      <img loading="lazy" alt="panel 19" src="https://i.urusai.cc/kvEJK.jpeg">
+      <img loading="lazy" alt="panel 20" src="https://i.urusai.cc/Bs7vw.jpeg">
+      <img loading="lazy" alt="panel 21" src="https://i.urusai.cc/bcL4Z.jpeg">
+      <img loading="lazy" alt="panel 22" src="https://i.urusai.cc/iEzbe.jpeg">
+      <img loading="lazy" alt="panel 23" src="https://i.urusai.cc/1cPs9.jpeg">
+      <img loading="lazy" alt="panel 24" src="https://i.urusai.cc/PsfDJ.jpeg">
+      <img loading="lazy" alt="panel 25" src="https://i.urusai.cc/IxIUX.jpeg">
+      <img loading="lazy" alt="panel 26" src="https://i.urusai.cc/uJRp8.jpeg">
+      <img loading="lazy" alt="panel 27" src="https://i.urusai.cc/ON63x.jpeg">
+      <img loading="lazy" alt="panel 28" src="https://i.urusai.cc/TooLp.jpeg">
+      <img loading="lazy" alt="panel 29" src="https://i.urusai.cc/8xCtZ.jpeg">
+      <img loading="lazy" alt="panel 30" src="https://i.urusai.cc/0xbuv.jpeg">
+      <img loading="lazy" alt="panel 31" src="https://i.urusai.cc/pJTRq.jpeg">
+      <img loading="lazy" alt="panel 32" src="https://i.urusai.cc/391uK.jpeg">
+      <img loading="lazy" alt="panel 33" src="https://i.urusai.cc/Ceh9a.jpeg">
+      <img loading="lazy" alt="panel 34" src="https://i.urusai.cc/PauJn.jpeg">
+      <img loading="lazy" alt="panel 35" src="https://i.urusai.cc/QahRH.jpeg">
+      <img loading="lazy" alt="panel 36" src="https://i.urusai.cc/h8Prv.jpeg">
+    </div>
+
+    <div class="tools">
+      <p>若要在頁面留一點外框，點一下「切換邊界」。</p>
+      <p class="tip">⚠️ 若要把所有圖片「真正合併成單一圖檔」，需以影像工具離線合成（或確保來源網域允許 CORS 才能用 Canvas 合併）。此頁提供「列印 → 存成 PDF」作為一鍵輸出長頁的做法。</p>
+      <details>
+        <summary>查看所有圖片連結（便於檢查/備份）</summary>
+        <div class="links" id="linksBox"></div>
+      </details>
+    </div>
+  </div>
+
+  <footer>
+    <div>© 長條圖拼接頁 · 單檔 HTML · 行動裝置優化</div>
+  </footer>
+
+  <script>
+    // 連結清單（供一鍵複製）
+    const urls = [
+      "https://i.urusai.cc/tr504.jpeg",
+      "https://i.urusai.cc/rJ9cE.jpeg",
+      "https://i.urusai.cc/Eun3Y.jpeg",
+      "https://i.urusai.cc/0Zdbl.jpeg",
+      "https://i.urusai.cc/D4beF.jpeg",
+      "https://i.urusai.cc/CpoUM.jpeg",
+      "https://i.urusai.cc/JDCto.jpeg",
+      "https://i.urusai.cc/keOO8.jpeg",
+      "https://i.urusai.cc/0LYoh.jpeg",
+      "https://i.urusai.cc/TI2kB.jpeg",
+      "https://i.urusai.cc/2rn6T.jpeg",
+      "https://i.urusai.cc/SiUSJ.jpeg",
+      "https://i.urusai.cc/79ldX.jpeg",
+      "https://i.urusai.cc/8Le5O.jpeg",
+      "https://i.urusai.cc/jRfAM.jpeg",
+      "https://i.urusai.cc/uiDAd.jpeg",
+      "https://i.urusai.cc/L25UB.jpeg",
+      "https://i.urusai.cc/eNEhQ.jpeg",
+      "https://i.urusai.cc/kvEJK.jpeg",
+      "https://i.urusai.cc/Bs7vw.jpeg",
+      "https://i.urusai.cc/bcL4Z.jpeg",
+      "https://i.urusai.cc/iEzbe.jpeg",
+      "https://i.urusai.cc/1cPs9.jpeg",
+      "https://i.urusai.cc/PsfDJ.jpeg",
+      "https://i.urusai.cc/IxIUX.jpeg",
+      "https://i.urusai.cc/uJRp8.jpeg",
+      "https://i.urusai.cc/ON63x.jpeg",
+      "https://i.urusai.cc/TooLp.jpeg",
+      "https://i.urusai.cc/8xCtZ.jpeg",
+      "https://i.urusai.cc/0xbuv.jpeg",
+      "https://i.urusai.cc/pJTRq.jpeg",
+      "https://i.urusai.cc/391uK.jpeg",
+      "https://i.urusai.cc/Ceh9a.jpeg",
+      "https://i.urusai.cc/PauJn.jpeg",
+      "https://i.urusai.cc/QahRH.jpeg",
+      "https://i.urusai.cc/h8Prv.jpeg"
+    ];
+    document.getElementById('linksBox').textContent = urls.join('\n');
+
+    document.getElementById('copyLinks').addEventListener('click', async () => {
+      try{
+        await navigator.clipboard.writeText(urls.join('\n'));
+        alert('已複製所有圖片連結到剪貼簿');
+      }catch(e){
+        alert('複製失敗，請手動選取下方清單複製。');
+      }
+    });
+
+    // 切換外框邊界，方便視覺檢查拼接
+    let gutted = false;
+    document.getElementById('toggleGutters').addEventListener('click', () => {
+      const strip = document.getElementById('strip');
+      gutted = !gutted;
+      if(gutted){
+        strip.style.padding = '8px';
+        strip.style.background = '#000';
+      }else{
+        strip.style.padding = '0';
+        strip.style.background = 'var(--card)';
+      }
+    });
+
+    // 若從瀏覽器返回頁面，確保 details 維持原收合狀態（避免自動展開）
+    window.addEventListener('pageshow', () => {
+      document.querySelectorAll('details').forEach(d => d.open = false);
+    });
+  </script>
+</body>
+</html>
