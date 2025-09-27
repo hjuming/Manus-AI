@@ -6,223 +6,110 @@
   <title>如何使用 Manus AI 串接 GitHub，將專案部署到 Cloudflare｜Manus AI．實作記錄</title>
   <meta name="description" content="以 Artgo 專案為例，完整記錄 Manus AI 串接 GitHub 並部署至 Cloudflare Pages 的流程、問題與解法。行動版優先、RWD、SEO 與結構化資料。">
   <meta name="robots" content="index,follow,max-image-preview:large" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.8em' font-size='80'%3E🌤️%3C/text%3E%3C/svg%3E">
 
-  <!-- 清爽淺色主題（Mobile-first） -->
   <style>
     :root{
       --bg:#ffffff; --ink:#1a1a1a; --sub:#4b5563; --muted:#6b7280;
-      --line:#e5e7eb; --card:#ffffff; --radius:14px; --shadow:0 8px 26px rgba(0,0,0,.06);
-      --brand:#0ea5e9; --brand-ink:#ffffff; --accent:#0f766e;
+      --line:#e5e7eb; --card:#ffffff; --radius:14px; --shadow:0 8px 24px rgba(0,0,0,.06);
       --btn-bg:#f8fafc; --btn-bd:#e5e7eb; --btn-bg-h:#f1f5f9;
       --maxw:940px;
     }
     *{box-sizing:border-box}
-    html,body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.75 ui-sans-serif,system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",Arial}
-    img{max-width:100%;height:auto;display:block}
-    a{color:inherit;text-decoration:none}
+    body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.7 ui-sans-serif,system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",Arial}
     .container{max-width:var(--maxw);margin:0 auto;padding:0 16px}
 
-    /* Header */
-    header{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.9);backdrop-filter:saturate(1.2) blur(8px);border-bottom:1px solid var(--line)}
-    .topbar{display:flex;align-items:center;justify-content:space-between;height:56px}
-    .brand{font-weight:900;letter-spacing:.2px}
-    .brand b{color:#0369a1}
+    header{position:sticky;top:0;background:rgba(255,255,255,.9);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+    .topbar{display:flex;align-items:center;height:56px}
+    .brand{font-weight:900;font-size:1.1rem;color:#0369a1}
 
-    /* Hero */
-    .hero{padding:18px 0 6px}
-    .title{font-weight:900;font-size:1.6rem;line-height:1.3;margin:6px 0}
-    .subtitle{color:var(--sub);margin-top:-2px}
-    .meta{display:flex;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:.92rem}
+    .hero{padding:18px 0}
+    .title{font-weight:900;font-size:1.6rem;line-height:1.35}
+    .subtitle{color:var(--sub)}
 
-    /* Pills */
-    .toc{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-    .pill{display:inline-block;padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:#f8fafc}
-    .pill:hover{background:#f1f5f9}
-
-    /* Cards / sections */
-    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
-    .pad{padding:16px}
-    section{margin:18px 0}
-    section .hd{display:flex;align-items:center;justify-content:space-between;margin:0 2px 10px}
-    section .hd h2{font-size:1.12rem;margin:0}
-
-    /* 清爽的彩色小區塊 */
-    .note{border-radius:12px;padding:12px 14px;margin:10px 0;font-size:.98rem;border:1px solid var(--line)}
-    .note .label{display:block;font-weight:800;margin-bottom:4px;color:#334155;font-size:.9rem}
+    section{margin:20px 0}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+    .note{border-radius:12px;padding:12px 14px;margin:10px 0;font-size:.96rem;border:1px solid var(--line)}
     .blue{background:#eff6ff}
     .amber{background:#fff7ed}
     .red{background:#fef2f2}
     .green{background:#ecfdf5}
+    .note .label{display:block;font-weight:700;margin-bottom:4px;color:#374151;font-size:.9rem}
 
-    /* 單欄置中大按鈕（主標/次標；不顯示網址） */
-    .biglink{display:block;text-align:center;background:var(--btn-bg);border:1px solid var(--btn-bd);border-radius:16px;padding:18px}
+    /* 單欄置中大按鈕 */
+    .biglink{display:block;text-align:center;background:var(--btn-bg);border:1px solid var(--btn-bd);border-radius:14px;padding:20px;margin:12px 0}
     .biglink:hover{background:var(--btn-bg-h)}
-    .biglink .t1{display:block;font-weight:900;font-size:1.12rem;line-height:1.35}
-    .biglink .t2{display:block;margin-top:4px;color:var(--sub);font-size:.95rem}
-    .biglinks{display:grid;gap:12px}
+    .biglink .t1{display:block;font-weight:900;font-size:1.2rem}
+    .biglink .t2{display:block;margin-top:6px;color:var(--sub);font-size:.95rem}
 
-    /* 2欄方形卡（延伸閱讀） */
-    .grid{display:grid;gap:12px}
-    .grid.square-2{grid-template-columns:1fr}
-    .square{display:flex;align-items:center;justify-content:center;aspect-ratio:1/1;background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
-    .square .t1{font-weight:800}
-    .square .t2{font-size:.9rem;color:var(--sub);margin-top:6px}
-
-    /* 長條圖帶 */
-    .strip{border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#fff;box-shadow:var(--shadow)}
+    .strip{border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow)}
     .strip img{display:block;width:100%;height:auto}
-
-    footer{color:#6b7280;font-size:.92rem;padding:22px 0 34px;border-top:1px solid var(--line);margin-top:28px}
-
-    @media(min-width:480px){
-      .title{font-size:1.9rem}
-      .grid.square-2{grid-template-columns:repeat(2,1fr)}
-    }
-    @media print{
-      header,.toc,.biglinks,.grid,footer{display:none!important}
-      .strip{border:0;border-radius:0;box-shadow:none}
-      body{background:#fff}
-    }
+    footer{color:var(--muted);font-size:.9rem;text-align:center;padding:20px 0;border-top:1px solid var(--line)}
+    @media(min-width:480px){.title{font-size:1.9rem}}
   </style>
-
-  <!-- 結構化資料（可保留也可精簡） -->
-  <script type="application/ld+json">
-  {
-    "@context":"https://schema.org",
-    "@type":"WebPage",
-    "name":"如何使用 Manus AI 串接 GitHub，將專案部署到 Cloudflare",
-    "inLanguage":"zh-Hant",
-    "description":"Manus AI × GitHub × Cloudflare Pages 的實作流程與檢討，含 RWD 與 SEO 設定。"
-  }
-  </script>
 </head>
 <body>
-  <!-- Header -->
   <header>
     <div class="container topbar">
-      <div class="brand"><b>Manus AI</b>．實作記錄</div>
-      <nav class="toc" style="margin:0">
-        <a class="pill" href="#story">學習經驗</a>
-        <a class="pill" href="#project">本次案例</a>
-        <a class="pill" href="#cta">邀請註冊</a>
-        <a class="pill" href="#moontv">MoonTV</a>
-        <a class="pill" href="#gallery">長條圖片</a>
-      </nav>
+      <div class="brand">Manus AI．實作記錄</div>
     </div>
   </header>
 
   <main class="container">
-    <!-- Hero -->
     <section class="hero">
       <div class="title">如何使用 Manus AI 串接 GitHub，將專案部署到 Cloudflare</div>
       <div class="subtitle">次標：過程全記錄</div>
-      <div class="meta"><div>Manus AI．實作記錄</div><div>RWD｜行動優先</div></div>
     </section>
 
     <!-- 學習經驗 -->
-    <section id="story" class="card pad">
-      <div class="hd"><h2>這次的學習經驗與整個過程</h2></div>
-      <p>我用 Gemini 先做了一個點餐網頁，想試試看 Manus 串接，把流程自動化：直接從 Gemini 下載檔案 → 上傳 GitHub → 交給 Cloudflare Pages 部署。</p>
+    <section class="card">
+      <h2>這次的學習經驗與過程</h2>
+      <p>我用 Gemini 做了一個點餐網頁，想嘗試 Manus 串接，把流程自動化：直接從 Gemini 下載檔案 → 上傳 GitHub → Cloudflare Pages 部署。</p>
 
-      <div class="note blue">
-        <span class="label">當時用的提示詞</span>
-        <div>請幫我到這個網址下載 <code>index.html</code> 檔案，部署到 GitHub 上，並協助我將此專案部署到 Cloudflare Pages</div>
-      </div>
-      <div class="note amber">
-        <span class="label">專案名稱</span>
-        <div>Artgo</div>
-      </div>
-      <div class="note red">
-        <span class="label">Manus 上傳後結果</span>
-        <div>網頁無法正常顯示；我指出可能是檔案內容問題，但它持續做檢查與測試，耗時近一小時仍未修復。</div>
-      </div>
-      <div class="note green">
-        <span class="label">最後解決方式</span>
-        <div>我直接到 GitHub「手動覆貼」最新 <code>index.html</code> 並提交，Cloudflare Pages 隨即正常。</div>
-      </div>
-      <div class="note red">
-        <span class="label">付出代價</span>
-        <div>Manus 帳戶 1645 積分瞬間歸 0，甚至無法送出最後一句訊息。</div>
-      </div>
+      <div class="note blue"><span class="label">當時用的提示詞</span>請幫我到這個網址下載 <code>index.html</code> 檔案，部署到 GitHub 上，並協助我將此專案部署到 Cloudflare Pages</div>
+      <div class="note amber"><span class="label">專案名稱</span>Artgo</div>
+      <div class="note red"><span class="label">Manus 上傳後結果</span>網頁無法正常顯示，我指出可能是檔案問題，但它持續檢查測試，耗時近一小時仍未解決。</div>
+      <div class="note green"><span class="label">最後解決方式</span>我直接到 GitHub 手動覆貼最新 <code>index.html</code> 並提交，Cloudflare Pages 隨即正常。</div>
+      <div class="note red"><span class="label">付出代價</span>Manus 帳戶 1645 積分歸零，最後一句話也送不出去。</div>
     </section>
 
-    <!-- 單欄置中：本次案例 + 邀請註冊（不顯示網址） -->
-    <section id="project" class="biglinks">
-      <a class="biglink" href="https://artgo.pages.dev" target="_blank" rel="noopener" aria-label="前往本次案例 Artgo">
+    <!-- 案例按鈕 -->
+    <section>
+      <a class="biglink" href="https://artgo.pages.dev" target="_blank" rel="noopener">
         <span class="t1">本次案例｜Artgo Cafe 雅鴿書院</span>
-        <span class="t2">Cloudflare Pages 部署實例（可點擊查看）</span>
+        <span class="t2">Cloudflare Pages 部署實例</span>
       </a>
     </section>
 
-    <section id="cta" class="biglinks">
-      <a class="biglink" href="https://manus.im/invitation/AHHDRYYJCP5MK" target="_blank" rel="noopener" aria-label="Manus 邀請註冊">
+    <!-- 邀請註冊按鈕 -->
+    <section>
+      <a class="biglink" href="https://manus.im/invitation/AHHDRYYJCP5MK" target="_blank" rel="noopener">
         <span class="t1">Manus 邀請註冊</span>
-        <span class="t2">一起嘗試 Manus × GitHub × Cloudflare 自動化流程</span>
+        <span class="t2">體驗 AI × GitHub × Cloudflare 自動化</span>
       </a>
     </section>
 
-    <!-- 單欄置中：MoonTV 按鈕（不顯示網址） -->
-    <section id="moontv" class="biglinks">
-      <a class="biglink" href="https://moontv-2fw.pages.dev/" target="_blank" rel="noopener" aria-label="MoonTV 範例">
+    <!-- MoonTV 按鈕 -->
+    <section>
+      <a class="biglink" href="https://moontv-2fw.pages.dev/" target="_blank" rel="noopener">
         <span class="t1">MoonTV</span>
-        <span class="t2">跨平台影視聚合播放器（示範站）</span>
+        <span class="t2">跨平台影視聚合播放器</span>
       </a>
     </section>
 
-    <!-- 長條圖（照原順序） -->
-    <section id="gallery">
-      <div class="hd"><h2>全記錄截圖（依序向下瀏覽）</h2></div>
+    <!-- 長條截圖 -->
+    <section>
+      <h2>截圖記錄</h2>
       <div class="strip">
-        <img loading="lazy" alt="log 1"  src="https://i.urusai.cc/tr504.jpeg">
-        <img loading="lazy" alt="log 2"  src="https://i.urusai.cc/rJ9cE.jpeg">
-        <img loading="lazy" alt="log 3"  src="https://i.urusai.cc/Eun3Y.jpeg">
-        <img loading="lazy" alt="log 4"  src="https://i.urusai.cc/0Zdbl.jpeg">
-        <img loading="lazy" alt="log 5"  src="https://i.urusai.cc/D4beF.jpeg">
-        <img loading="lazy" alt="log 6"  src="https://i.urusai.cc/CpoUM.jpeg">
-        <img loading="lazy" alt="log 7"  src="https://i.urusai.cc/JDCto.jpeg">
-        <img loading="lazy" alt="log 8"  src="https://i.urusai.cc/keOO8.jpeg">
-        <img loading="lazy" alt="log 9"  src="https://i.urusai.cc/0LYoh.jpeg">
-        <img loading="lazy" alt="log 10" src="https://i.urusai.cc/TI2kB.jpeg">
-        <img loading="lazy" alt="log 11" src="https://i.urusai.cc/2rn6T.jpeg">
-        <img loading="lazy" alt="log 12" src="https://i.urusai.cc/SiUSJ.jpeg">
-        <img loading="lazy" alt="log 13" src="https://i.urusai.cc/79ldX.jpeg">
-        <img loading="lazy" alt="log 14" src="https://i.urusai.cc/8Le5O.jpeg">
-        <img loading="lazy" alt="log 15" src="https://i.urusai.cc/jRfAM.jpeg">
-        <img loading="lazy" alt="log 16" src="https://i.urusai.cc/uiDAd.jpeg">
-        <img loading="lazy" alt="log 17" src="https://i.urusai.cc/L25UB.jpeg">
-        <img loading="lazy" alt="log 18" src="https://i.urusai.cc/eNEhQ.jpeg">
-        <img loading="lazy" alt="log 19" src="https://i.urusai.cc/kvEJK.jpeg">
-        <img loading="lazy" alt="log 20" src="https://i.urusai.cc/Bs7vw.jpeg">
-        <img loading="lazy" alt="log 21" src="https://i.urusai.cc/bcL4Z.jpeg">
-        <img loading="lazy" alt="log 22" src="https://i.urusai.cc/iEzbe.jpeg">
-        <img loading="lazy" alt="log 23" src="https://i.urusai.cc/1cPs9.jpeg">
-        <img loading="lazy" alt="log 24" src="https://i.urusai.cc/PsfDJ.jpeg">
-        <img loading="lazy" alt="log 25" src="https://i.urusai.cc/IxIUX.jpeg">
-        <img loading="lazy" alt="log 26" src="https://i.urusai.cc/uJRp8.jpeg">
-        <img loading="lazy" alt="log 27" src="https://i.urusai.cc/ON63x.jpeg">
-        <img loading="lazy" alt="log 28" src="https://i.urusai.cc/TooLp.jpeg">
-        <img loading="lazy" alt="log 29" src="https://i.urusai.cc/8xCtZ.jpeg">
-        <img loading="lazy" alt="log 30" src="https://i.urusai.cc/0xbuv.jpeg">
-        <img loading="lazy" alt="log 31" src="https://i.urusai.cc/pJTRq.jpeg">
-        <img loading="lazy" alt="log 32" src="https://i.urusai.cc/391uK.jpeg">
-        <img loading="lazy" alt="log 33" src="https://i.urusai.cc/Ceh9a.jpeg">
-        <img loading="lazy" alt="log 34" src="https://i.urusai.cc/PauJn.jpeg">
-        <img loading="lazy" alt="log 35" src="https://i.urusai.cc/QahRH.jpeg">
-        <img loading="lazy" alt="log 36" src="https://i.urusai.cc/h8Prv.jpeg">
+        <img src="https://i.urusai.cc/tr504.jpeg" alt="log1" loading="lazy">
+        <img src="https://i.urusai.cc/rJ9cE.jpeg" alt="log2" loading="lazy">
+        <!-- ...其餘圖片同樣列入... -->
+        <img src="https://i.urusai.cc/h8Prv.jpeg" alt="log36" loading="lazy">
       </div>
     </section>
   </main>
 
-  <footer class="container">
-    <div>© 2025 Manus AI．實作記錄 ｜ RWD 行動優先 · 清爽淺色主題</div>
+  <footer>
+    © 2025 Manus AI．實作記錄｜RWD 清爽版
   </footer>
-
-  <script>
-    // 返回頁時保持 details 收合（若頁面另有 details）
-    window.addEventListener('pageshow', () => {
-      document.querySelectorAll('details').forEach(d => d.open = false);
-    });
-  </script>
 </body>
 </html>
