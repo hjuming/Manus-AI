@@ -3,144 +3,170 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>如何使用 Manus AI 串接 GitHub，將專案部署到 Cloudflare｜Manus AI．實作記錄</title>
-  <meta name="description" content="以 Artgo 專案為例，完整記錄 Manus AI 串接 GitHub 並部署至 Cloudflare Pages 的流程、問題與檢討。含延伸案例、行動優先 RWD、SEO 與結構化資料。">
-  <meta name="robots" content="index,follow,max-image-preview:large" />
-
+  <title>AI建站實作案例｜Manus AI 串接 GitHub + Cloudflare 部署全記錄</title>
+  <meta name="description" content="完整紀錄 Manus AI × GitHub × Cloudflare 部署網站的實作過程，含踩雷檢討、排查清單、全程截圖與延伸案例。AI建站學習者必看！">
+  <meta property="og:image" content="https://i.urusai.cc/IUnIi.jpeg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://i.urusai.cc/IUnIi.jpeg" />
   <style>
     :root{
       --bg:#ffffff; --ink:#1a1a1a; --sub:#4b5563; --muted:#6b7280;
-      --line:#e5e7eb; --card:#ffffff; --radius:14px; --shadow:0 8px 24px rgba(0,0,0,.06);
-      --btn-bg:#f8fafc; --btn-bd:#e5e7eb; --btn-h:#f1f5f9;
+      --line:#e5e7eb; --card:#ffffff; --radius:14px; --shadow:0 8px 22px rgba(0,0,0,.06);
       --maxw:940px;
     }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.75 ui-sans-serif,system-ui,"Noto Sans TC","Microsoft JhengHei",Arial}
+    body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.75 "Noto Sans TC",system-ui,sans-serif}
     .container{max-width:var(--maxw);margin:0 auto;padding:0 16px}
-    header{position:sticky;top:0;background:rgba(255,255,255,.9);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-    .topbar{display:flex;align-items:center;height:56px}
-    .brand{font-weight:900;font-size:1.1rem;color:#0369a1}
-
-    .hero{padding:18px 0}
-    .title{font-weight:900;font-size:1.75rem}
+    header{background:#fff;border-bottom:1px solid var(--line)}
+    .brand{font-weight:900;font-size:1.1rem;color:#0369a1;padding:14px 0}
+    .heroimg img{width:100%;height:auto;border-radius:0 0 16px 16px}
+    .title{font-weight:900;font-size:1.9rem}
     .subtitle{color:var(--sub)}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+      box-shadow:var(--shadow);padding:20px;margin:20px 0}
 
-    section{margin:20px 0}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
-    .note{border-radius:12px;padding:12px;margin:10px 0;font-size:.96rem;border:1px solid var(--line)}
-    .blue{background:#eff6ff}.amber{background:#fff7ed}.red{background:#fef2f2}.green{background:#ecfdf5}
-    .note .label{font-weight:700;display:block;margin-bottom:4px;color:#374151}
+    /* 延伸閱讀卡片 */
+    .grid{display:grid;gap:16px}
+    .grid.two{grid-template-columns:1fr}
+    .square{background:#f9fafb;border:1px solid var(--line);border-radius:14px;overflow:hidden;
+      text-decoration:none;color:inherit;box-shadow:var(--shadow)}
+    .square img{width:100%;aspect-ratio:1/1;object-fit:cover}
+    .square .text{padding:12px}
+    .square .t1{font-weight:800;font-size:1.2rem;display:block}
+    .square .t2{font-size:.95rem;color:var(--sub);display:block;margin-top:6px}
+    @media(min-width:600px){.grid.two{grid-template-columns:repeat(2,1fr)}}
 
-    /* 按鈕卡片 */
-    .biglinks{display:grid;gap:12px}
-    .biglink{display:block;text-align:center;background:var(--btn-bg);border:1px solid var(--btn-bd);border-radius:16px;padding:18px}
-    .biglink:hover{background:var(--btn-h)}
-    .biglink .t1{display:block;font-weight:900;font-size:1.18rem}
-    .biglink .t2{display:block;margin-top:4px;color:var(--sub);font-size:.95rem}
+    /* 截圖長條 */
+    .strip{padding:16px 0}
+    .strip img{
+      display:block;
+      width:100%;
+      height:auto;
+      margin:0 0 12px 0;
+      border-radius:12px;
+      box-shadow:0 2px 6px rgba(0,0,0,.08);
+    }
+    #loadMore{display:block;margin:20px auto;padding:14px 28px;font-size:1.1rem;
+      border:none;border-radius:8px;background:#3b82f6;color:#fff;cursor:pointer}
+    #loadMore:hover{background:#2563eb}
 
-    /* Timeline */
-    .timeline{border-left:3px solid var(--line);margin-left:8px;padding-left:14px;display:grid;gap:8px}
-    .timeline .row{position:relative}
-    .timeline .row:before{content:"";position:absolute;left:-21px;top:.35rem;width:10px;height:10px;border-radius:50%;background:#94a3b8}
-    .timeline .t{font-weight:800}
-    .timeline .d{color:var(--sub);font-size:.95rem}
-
-    /* Checklist */
-    .check li{list-style:none;padding-left:28px;position:relative}
-    .check li:before{content:"✓";position:absolute;left:0;top:0;color:#059669;font-weight:900}
-
-    .strip{border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow)}
-    .strip img{display:block;width:100%;height:auto}
     footer{color:var(--muted);font-size:.9rem;text-align:center;padding:20px 0;border-top:1px solid var(--line)}
   </style>
 </head>
 <body>
-  <header>
-    <div class="container topbar">
-      <div class="brand">Manus AI．實作記錄</div>
-    </div>
-  </header>
+  <header><div class="container"><div class="brand">Manus AI．實作記錄</div></div></header>
+  <div class="heroimg"><img src="https://i.urusai.cc/xEyxU.jpeg" alt="Hero"></div>
 
   <main class="container">
-    <!-- Hero -->
     <section class="hero">
-      <div class="title">如何使用 Manus AI 串接 GitHub，將專案部署到 Cloudflare</div>
-      <div class="subtitle">次標：過程全記錄</div>
+      <div class="title">如何使用Manus AI串接GitHub，將專案部署到 Cloudflare Pages</div>
+      <div class="subtitle">過程全記錄</div>
     </section>
 
-    <!-- 學習經驗 -->
+    <!-- 學習心得 -->
     <section class="card">
-      <h2>學習經驗與過程</h2>
-      <p>Gemini → Manus → GitHub → Cloudflare Pages，結果卻大踩雷。</p>
-      <div class="note blue"><span class="label">提示詞</span>請幫我下載 index.html，上傳 GitHub，並部署到 Cloudflare Pages</div>
-      <div class="note amber"><span class="label">專案名稱</span>Artgo</div>
-      <div class="note red"><span class="label">Manus 結果</span>持續測試近一小時仍無法正常顯示</div>
-      <div class="note green"><span class="label">解決方式</span>手動在 GitHub 覆貼 index.html → 成功部署</div>
-      <div class="note red"><span class="label">代價</span>耗掉 1645 積分，最後訊息也送不出去</div>
-    </section>
-
-    <!-- 檢討 -->
-    <section class="card">
-      <h2>為什麼失敗？</h2>
-      <ol>
-        <li>任務邊界不清：同時要求下載/上傳/修復，AI 容易混亂</li>
-        <li>缺乏驗證：未要求回報檔案大小或 diff</li>
-        <li>快取/分支未檢查：造成錯覺</li>
-        <li>缺停損：無人工介入，積分被耗盡</li>
-      </ol>
-    </section>
-
-    <!-- 排查清單 -->
-    <section class="card">
-      <h2>排查清單</h2>
-      <ul class="check">
-        <li>Cloudflare Pages 分支是否正確？</li>
-        <li>GitHub 上 index.html 是否最新？</li>
-        <li>清快取（或 ?v=時間戳）</li>
-        <li>路徑/大小寫是否正確？</li>
-        <li>加一個 health.html 驗證頁</li>
-      </ul>
-    </section>
-
-    <!-- 流程時間軸 -->
-    <section class="card">
-      <h2>流程時間軸（理想版）</h2>
-      <div class="timeline">
-        <div class="row"><div class="t">下載</div><div class="d">AI 下載並回報檔案大小/雜湊</div></div>
-        <div class="row"><div class="t">上傳</div><div class="d">提交 GitHub，附 diff</div></div>
-        <div class="row"><div class="t">部署</div><div class="d">Cloudflare Pages 綁定正確分支</div></div>
-        <div class="row"><div class="t">驗證</div><div class="d">開 health.html 與首頁測試</div></div>
+      <p>我用Gemini做了一個點餐網頁，完成後想試試Manus串接，幫我直接從Gemini連接下載檔案，然後直接上傳GitHub（悔不當初），浪費一小時，花了1645積分。</p>
+      <div style="background:#eff6ff;border-radius:10px;padding:10px;margin:10px 0">
+        <b>當時用的提示詞</b><br>
+        請幫我到這個網址下載index.html 檔案，部署到GitHub上，並協助我將此專案部署到 Cloudflare Pages
       </div>
-    </section>
-
-    <!-- 案例按鈕 -->
-    <section class="biglinks">
-      <a class="biglink" href="https://artgo.pages.dev" target="_blank"><span class="t1">本次案例｜Artgo Cafe 雅鴿書院</span><span class="t2">Cloudflare Pages 部署實例</span></a>
-      <a class="biglink" href="https://manus.im/invitation/AHHDRYYJCP5MK" target="_blank"><span class="t1">Manus 邀請註冊</span><span class="t2">體驗 AI × GitHub × Cloudflare</span></a>
-      <a class="biglink" href="https://moontv-2fw.pages.dev/" target="_blank"><span class="t1">MoonTV</span><span class="t2">跨平台影視聚合播放器</span></a>
-    </section>
-
-    <!-- 延伸閱讀案例 -->
-    <section class="biglinks">
-      <a class="biglink" href="https://disaster-report.pages.dev/" target="_blank"><span class="t1">馬太鞍溪堰塞湖溢流災害</span><span class="t2">中央與地方角色分析</span></a>
-      <a class="biglink" href="https://mbti.petsgo.pet/" target="_blank"><span class="t1">MBTI 動物原型人格測試</span><span class="t2">探索你的靈魂動物</span></a>
-      <a class="biglink" href="https://appleshow-abb6yj.manus.space/" target="_blank"><span class="t1">Apple 產品發表會</span><span class="t2">新 iPhone / AirPods / Watch</span></a>
-      <a class="biglink" href="https://lottery-jvtc6k.manus.space/" target="_blank"><span class="t1">威力彩</span><span class="t2">下一期頭獎號碼</span></a>
-      <a class="biglink" href="https://judicial-n4f53b.manus.space/" target="_blank"><span class="t1">司法偵辦對比分析</span><span class="t2">超思蛋案 vs 京華城案</span></a>
-      <a class="biglink" href="https://kuiweb-4fdmgc.manus.space/" target="_blank"><span class="t1">夔：符號學解讀</span><span class="t2">自然神力到帝王權威</span></a>
-    </section>
-
-    <!-- 截圖記錄 -->
-    <section>
-      <h2>截圖記錄</h2>
-      <div class="strip">
-        <img src="https://i.urusai.cc/tr504.jpeg" loading="lazy">
-        <img src="https://i.urusai.cc/rJ9cE.jpeg" loading="lazy">
-        <img src="https://i.urusai.cc/h8Prv.jpeg" loading="lazy">
+      <div style="background:#fff7ed;border-radius:10px;padding:10px;margin:10px 0">
+        <b>專案名稱</b><br>Artgo
       </div>
+      <p>Manus上傳後結果：網頁無法正常顯示，我提醒他是不是檔案內容有問題，但他不理我，自己鬼打牆檢查了一個小時，做各種測試，試圖修復網頁問題。</p>
+      <p>最後解決方式：我自己上GitHub網站，重貼index.html 程式，按下更新存檔，問題就解決了。</p>
+      <p>付出代價：Manus 帳戶1645積分瞬間歸0，連最後一句話都不讓我送出去。想看全記錄的朋友，請往下觀看36張過程截圖，依順序瀏覽即可。</p>
     </section>
+
+    <h2>本次案例：Artgo</h2>
+    <a class="square" href="https://artgo.pages.dev" target="_blank">
+      <img src="https://i.urusai.cc/NOb6J.jpg">
+      <div class="text">
+        <div class="t1">Artgo Cafe 雅鴿書院</div>
+        <div class="t2">日式料理 極上總督盛宴</div>
+      </div>
+    </a>
+
+    <h2>延伸閱讀：AI建站案例</h2>
+    <div class="grid two">
+      <a class="square" href="https://mbti.petsgo.pet/" target="_blank">
+        <img src="https://i.urusai.cc/LEjpD.jpg">
+        <div class="text"><div class="t1">MBTI 動物原型人格測試</div><div class="t2">探索你的內在宇宙，發現屬於你的靈魂動物</div></div>
+      </a>
+      <a class="square" href="https://disaster-report.pages.dev/" target="_blank">
+        <img src="https://i.urusai.cc/I1kDi.jpeg">
+        <div class="text"><div class="t1">馬太鞍溪堰塞湖溢流災害</div><div class="t2">中央與地方政府角色分析與檢討</div></div>
+      </a>
+      <a class="square" href="https://appleshow-abb6yj.manus.space/" target="_blank">
+        <img src="https://i.urusai.cc/eSBWs.jpeg">
+        <div class="text"><div class="t1">Apple 產品發表會</div><div class="t2">探索新一代 iPhone、AirPods 和 Apple Watch 的升級亮點</div></div>
+      </a>
+      <a class="square" href="https://lottery-jvtc6k.manus.space/" target="_blank">
+        <img src="https://i.urusai.cc/J5vpK.jpeg">
+        <div class="text"><div class="t1">威力彩頭獎號碼</div><div class="t2">🏆 下一個頭獎得主就是你！</div></div>
+      </a>
+      <a class="square" href="https://judicial-n4f53b.manus.space/" target="_blank">
+        <img src="https://i.urusai.cc/SlCZc.jpeg">
+        <div class="text"><div class="t1">司法偵辦過程對比分析</div><div class="t2">超思雞蛋案 vs 柯文哲京華城案 台灣</div></div>
+      </a>
+      <a class="square" href="https://kuiweb-4fdmgc.manus.space/" target="_blank">
+        <img src="https://i.urusai.cc/1fckM.jpeg">
+        <div class="text"><div class="t1">夔：從自然神力到帝王權威的符號學解讀</div><div class="t2">山海經·大荒東經</div></div>
+      </a>
+      <a class="square" href="https://moontv-2fw.pages.dev/" target="_blank">
+        <img src="https://i.urusai.cc/DrtJV.png">
+        <div class="text"><div class="t1">MoonTV</div><div class="t2">一個開箱即用的、跨平台的影視聚合播放器</div></div>
+      </a>
+      <a class="square" href="https://manus.im/invitation/AHHDRYYJCP5MK" target="_blank">
+        <img src="https://i.urusai.cc/s0K2C.jpeg">
+        <div class="text"><div class="t1">Manus 邀請註冊</div><div class="t2">一起嘗試 Manus × GitHub × Cloudflare</div></div>
+      </a>
+    </div>
+
+    <h2>Manus AI 全記錄截圖</h2>
+    <div id="screenshots" class="strip"></div>
+    <button id="loadMore">繼續觀看 展開更多</button>
+
+    <a class="square" href="https://manus.im/invitation/AHHDRYYJCP5MK" target="_blank">
+      <img src="https://i.urusai.cc/s0K2C.jpeg">
+      <div class="text">
+        <div class="t1">立即註冊 Manus AI</div>
+        <div class="t2">探索更多自動化實驗</div>
+      </div>
+    </a>
   </main>
 
-  <footer>© 2025 Manus AI．實作記錄｜清爽淺色版</footer>
+  <footer>© 2025 Manus AI．實作記錄｜行動優先 RWD 清爽版</footer>
+
+  <script>
+    const imgs=[
+      "https://i.urusai.cc/tr504.jpeg","https://i.urusai.cc/rJ9cE.jpeg","https://i.urusai.cc/Eun3Y.jpeg",
+      "https://i.urusai.cc/0Zdbl.jpeg","https://i.urusai.cc/D4beF.jpeg","https://i.urusai.cc/CpoUM.jpeg",
+      "https://i.urusai.cc/JDCto.jpeg","https://i.urusai.cc/keOO8.jpeg","https://i.urusai.cc/0LYoh.jpeg",
+      "https://i.urusai.cc/TI2kB.jpeg","https://i.urusai.cc/2rn6T.jpeg","https://i.urusai.cc/SiUSJ.jpeg",
+      "https://i.urusai.cc/79ldX.jpeg","https://i.urusai.cc/8Le5O.jpeg","https://i.urusai.cc/jRfAM.jpeg",
+      "https://i.urusai.cc/uiDAd.jpeg","https://i.urusai.cc/L25UB.jpeg","https://i.urusai.cc/eNEhQ.jpeg",
+      "https://i.urusai.cc/kvEJK.jpeg","https://i.urusai.cc/Bs7vw.jpeg","https://i.urusai.cc/bcL4Z.jpeg",
+      "https://i.urusai.cc/iEzbe.jpeg","https://i.urusai.cc/1cPs9.jpeg","https://i.urusai.cc/PsfDJ.jpeg",
+      "https://i.urusai.cc/IxIUX.jpeg","https://i.urusai.cc/uJRp8.jpeg","https://i.urusai.cc/ON63x.jpeg",
+      "https://i.urusai.cc/TooLp.jpeg","https://i.urusai.cc/8xCtZ.jpeg","https://i.urusai.cc/0xbuv.jpeg",
+      "https://i.urusai.cc/pJTRq.jpeg","https://i.urusai.cc/391uK.jpeg","https://i.urusai.cc/Ceh9a.jpeg",
+      "https://i.urusai.cc/PauJn.jpeg","https://i.urusai.cc/QahRH.jpeg","https://i.urusai.cc/h8Prv.jpeg"
+    ];
+    let idx=0;
+    const box=document.getElementById("screenshots"),btn=document.getElementById("loadMore");
+    function load(n){
+      for(let i=0;i<n && idx<imgs.length;i++,idx++){
+        const im=document.createElement("img");
+        im.src=imgs[idx];
+        im.loading="lazy";
+        box.appendChild(im);
+      }
+    }
+    load(15); // 預設載入15張
+    btn.addEventListener("click",()=>{
+      load(imgs.length-idx);
+      btn.style.display="none";
+    });
+  </script>
 </body>
 </html>
