@@ -1,90 +1,94 @@
-這份教學文件將引導你如何將 GitHub 上的專案部署到 Cloudflare Pages。
+🚀 手把手教學：將你的 GitHub 專案部署到 Cloudflare Pages！
+嗨！這份教學文件將會像你的專屬嚮導，一步步帶你將存放在 GitHub 上的專案，免費、快速地部署到 Cloudflare Pages，讓全世界都能看見你的作品。準備好了嗎？我們開始吧！
 
-教學目標
+📋 第一站：行前準備與確認
+在我們踏上這趟旅程之前，請先確認你的背包裡有這兩樣東西：
 
-本文件旨在引導使用者完成 GitHub 與 Cloudflare Pages 的串接與專案部署，讓你學會如何透過 Cloudflare Pages 快速、安全地託管你的靜態網站。
+一個 GitHub 帳戶：並且你想要部署的專案程式碼，已經好好地放在一個 GitHub 儲存庫 (Repository) 裡了。
 
-事前準備
+一個 Cloudflare 帳戶：如果還沒有，別擔心，可以到 官網 註冊一個，過程完全免費！
 
-在開始之前，請確保你已具備以下條件：
+🗺️ 第二站：串接 GitHub 與 Cloudflare Pages
+現在，我們要來搭起 GitHub 和 Cloudflare 之間的橋樑。
 
-一個 GitHub 帳戶：並且你想要部署的專案已經推送到一個 GitHub Repository (儲存庫)。
+1. 登入 Cloudflare 尋找 Pages 入口
 
-一個 Cloudflare 帳戶：如果沒有，可以免費註冊。
+首先，請前往 Cloudflare 儀表板 並登入你的帳戶。
 
-部署教學：從 GitHub 到 Cloudflare Pages
-步驟一：登入 Cloudflare 並找到 Pages 功能
+在左側的導覽列中，找到並點擊 <span style="color: #f0ad4e;">Workers & Pages</span> 的選項。
 
-前往 Cloudflare 儀表板 並登入你的帳戶。
+2. 建立新專案，連接到 Git
 
-在右側的導覽列中，點擊 Workers & Pages。
+進入 Workers & Pages 頁面後，你會看到一個大大的按鈕，點擊 <span style="color: #5cb85c;">Create application</span> (建立應用程式)。
 
-步驟二：建立新的 Pages 專案並連結 GitHub
+接著，在上方選擇 Pages 分頁，然後點擊 <span style="color: #5bc0de;">Connect to Git</span> (連接到 Git)。
 
-進入 Workers & Pages 頁面後，點擊 Create application (建立應用程式)。
+3. 授權 Cloudflare 存取 GitHub
 
-在建立頁面中，選擇 Pages 分頁。
+點擊後，畫面會跳轉到 GitHub，這是為了請求你的授權。
 
-點擊 Connect to Git (連接到 Git) 按鈕，以開始串接你的版本控制服務。
+GitHub 會詢問你，是否同意讓 Cloudflare Pages 存取你的儲存庫。這裡你有兩個選擇：
 
-步驟三：授權 Cloudflare 存取你的 GitHub 帳戶
+All repositories (所有儲存庫)
 
-系統會引導你至 GitHub 授權頁面。如果你是第一次使用，GitHub 會請求你授權 Cloudflare Pages 存取你的儲存庫。
+Only select repositories (僅選擇特定儲存庫)
 
-你可以選擇授權存取 所有儲存庫 (All repositories) 或 僅選擇特定儲存庫 (Only select repositories)。為了安全起見，建議選擇後者，並勾選你想要部署的專案。
+<span style="color: #d9534f;">強烈建議</span> 選擇 Only select repositories，然後勾選你這次**<span style="color: #d9534f;">真正要部署的那個專案</span>**。這是一個比較安全的做法！
 
-點擊 Install & Authorize (安裝並授權)。
+按下 Install & Authorize (安裝並授權)，給予通行許可。
 
-步驟四：選擇要部署的專案儲存庫
+4. 選擇你的專案儲存庫
 
-授權完成後，頁面會返回 Cloudflare。
+授權成功後，你會被自動帶回到 Cloudflare 頁面。
 
-此時，你應該能看到你的 GitHub 帳戶已成功連結。
+此時，你剛剛授權的儲存庫會出現在列表中。找到它、點選它，然後按下 Begin setup (開始設定)。
 
-在儲存庫列表中，找到並點選你想要部署的專案，然後點擊 Begin setup (開始設定)。
+⚙️ 第三站：設定專案的建置與部署
+這是整趟旅程的**<span style="color: #d9534f;">核心環節</span>**！我們需要告訴 Cloudflare 如何「組裝」你的專案，讓它變成一個可以運行的網站。
 
-步驟五：設定建置與部署選項
+1. 專案基本設定
 
-這是整個流程中最關鍵的步驟，你需要告訴 Cloudflare Pages 如何建置 (Build) 你的專案。
+Project name (專案名稱)：為你的網站取個名字吧！它將成為你預設網址的一部分，例如：my-awesome-project.pages.dev。
 
-Project name (專案名稱)：Cloudflare 會預設使用你的儲存庫名稱，你可以自行修改。這將會是你預設網址的一部分 (<專案名稱>.pages.dev)。
+Production branch (生產分支)：選擇你的主要程式碼分支，通常是 main 或 master。<span style="color: #5bc0de;">這非常重要</span>，因為未來只要這個分支有任何更新，Cloudflare 就會自動幫你重新部署網站！
 
-Production branch (生產分支)：選擇你的主要分支，通常是 main 或 master。當這個分支有新的 commit (提交) 時，Cloudflare Pages 會自動重新部署。
+2. Build settings (建置設定)
 
-Build settings (建置設定)：
+這裡是技術性最強的部分，但別怕，我們一步步來拆解：
 
-Framework preset (框架預設集)：Cloudflare Pages 能自動偵測許多常見的前端框架 (如 React, Vue, Hugo 等)。如果你的專案是使用這些框架，直接選取它，Cloudflare 會自動填入下方的建置指令和輸出目錄。
+Framework preset (框架預設集)：
 
-Build command (建置指令)：如果你的專案需要編譯 (例如：使用 Vite, Webpack 或需要處理 Sass/TypeScript)，請在此填寫建置指令。
+Cloudflare 非常聰明，它認識很多主流的前端框架 (例如 React, Vue, Svelte, Vite, Hugo 等)。
 
-範例 (React/Vite): npm run build
+如果你的專案是使用這些框架，直接在下拉選單中選擇它。Cloudflare 會像魔法一樣，<span style="color: #5cb85c;">自動填寫</span> 下方的建置指令和輸出目錄！
 
-範例 (純 HTML/CSS/JS): 如果你的專案是純靜態檔案，此欄位可以留空。
+Build command (建置指令)：
 
-Build output directory (建置輸出目錄)：這是執行建置指令後，最終要部署的靜態檔案所在的資料夾。
+這個指令是告訴 Cloudflare：「嘿，請用這個指令來打包我的專案」。
 
-範例 (React/Vite): dist 或 build
+如果你是使用 Vite 或 Create React App，指令通常是 npm run build。
 
-範例 (純 HTML/CSS/JS): 如果你的專案根目錄就是網站內容，請填寫 / 或 .。
+<span style="color: #f0ad4e;">特別注意</span>：如果你的專案只是單純的 HTML, CSS, JavaScript 靜態檔案，完全不需要任何編譯或打包，那**<span style="color: #f0ad4e;">這個欄位請留空</span>**！
 
-(選用) Environment variables (環境變數)：如果你的專案需要使用 API 金鑰等機敏資訊，可以在這裡設定。
+Build output directory (建置輸出目錄)：
 
-確認所有設定後，點擊 Save and Deploy (儲存並部署)。
+執行完「建置指令」後，所有打包好的、最終要上傳的網站檔案都會放在這個資料夾。
 
-步驟六：等待部署完成
+常見的名稱有 dist (Vite 專案)、build (Create React App 專案) 或 public (Hugo 專案)。
 
-點擊儲存後，Cloudflare Pages 會開始從 GitHub 拉取你的程式碼，並執行你設定的建置指令。
+如果你的專案是純靜態檔案，根目錄就是網站內容，可以直接填寫 <span style="color: #f0ad4e;">/</span>。
 
-你可以看到詳細的部署日誌 (Deployment logs)，方便排查問題。
+3. 儲存並部署
 
-首次部署通常需要幾分鐘時間。當狀態顯示 Success 時，代表你的網站已成功上線！
+確認所有設定都無誤後，勇敢地按下 <span style="color: #5cb85c;">Save and Deploy</span> (儲存並部署)！
 
-Cloudflare 會提供一個 .pages.dev 的專屬網域給你，點擊該網址即可預覽你的網站。
+🎉 終點站：部署成功！
+點擊部署後，你會看到一個充滿程式碼的日誌畫面。這是 Cloudflare 正在幕後辛勤工作的過程：從 GitHub 拉取你的程式碼 -> 安裝相依套件 -> 執行建置指令 -> 部署到全球網路上。
 
-結論
+請耐心等待幾分鐘，當你看到狀態顯示為 <span style="color: #5cb85c;">Success</span> (成功) 時，就代表……
 
-恭喜你！你已經成功地將 GitHub 專案部署到 Cloudflare Pages 上。
+<span style="color: #d9534f; font-size: 1.2em;">恭喜你！你的網站已經成功上線了！</span>
 
-從現在起，每當你將新的變更 push 到你設定的生產分支 (main 或 master) 時，Cloudflare Pages 都會自動觸發新的建置與部署，實現了 CI/CD (持續整合/持續部署) 的自动化流程，讓你的網站維護更加輕鬆。
+Cloudflare 會提供一個結尾是 .pages.dev 的網址，點擊它，立刻就能看到你的心血結晶！
 
-如果你需要綁定自己的域名，可以到專案的 Custom domains 分頁進行設定。
+從現在開始，這就是你的自動化魔法流程：只要你推送 (push) 任何更新到 GitHub 的 main 分支，Cloudflare 就會自動幫你搞定後續所有部署的雜事。專注在你的程式碼上，剩下的交給它吧！
